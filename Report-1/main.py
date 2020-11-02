@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.random as rd
 import matplotlib.pyplot as plt
-from ImgProc import MyImgProcLib
+from ImgProc import ImgProcLib
 from utils import *
 
 # parameters
@@ -13,7 +13,7 @@ win_size = 7
 max_size = 7
 
 # create a MyImgProcLib object
-ipl = MyImgProcLib(show=False, verbose=True)
+ipl = ImgProcLib(show=False, verbose=True)
 
 # median filter test
 f = ipl.load(filepath)

@@ -8,8 +8,8 @@ from PIL import Image
 IMIN = np.uint8(0) # black
 IMAX = np.uint8(255) # white
 
-class MyImgProcLib:
-    def __init__(self, show=True, verbose=True):
+class ImgProcLib:
+    def __init__(self, show=False, verbose=True):
         self.show = show
         self.verbose = verbose
 
@@ -48,6 +48,16 @@ class MyImgProcLib:
 
     def get_pixel_rel_win(self, f, y, x, ofs, flatten=False):
         return self.get_pixel_abs_win(f, x - ofs, x + ofs, y - ofs, y + ofs, flatten)
+    
+    def inverse(self, f):
+        g = f.copy()
+        height, width = f.shape
+
+        for y in range(height):
+            for x in range(width):
+                g[y, x] = IMAX - f[y, x]
+        
+        return g
 
     def add_salt_and_pepper(self, f, ratio_salt=0.05, ratio_pepper=0.05):
         # add salt-and-pepper noise
@@ -77,7 +87,7 @@ class MyImgProcLib:
         #
         # f: input image data
         # win_size: filter size
-        # inc_bound: boundary is filtered if True
+        # inc_bound: filter boundary if True
         # g: filtered image data
         #
         g = f.copy()
