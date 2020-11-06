@@ -44,12 +44,13 @@ class ImgProcLib:
         if flatten: f_win = f_win.flatten()
         is_boundary = (x_max - x_min < right - left) or (y_max - y_min < bottom - top)
 
-        return f_win, is_boundary
+        return f_win.copy(), is_boundary
 
     def get_pixel_rel_win(self, f, y, x, ofs, flatten=False):
         return self.get_pixel_abs_win(f, x - ofs, x + ofs, y - ofs, y + ofs, flatten)
     
     def inverse(self, f):
+        # inverse image
         g = f.copy()
         height, width = f.shape
 
@@ -58,20 +59,33 @@ class ImgProcLib:
                 g[y, x] = IMAX - f[y, x]
         
         return g
+    
+    def difference(self, f1, f2, neg_proc='abs'):
+        # generate difference image between two images
+        diff = np.array(f1, dtype=np.int) - np.array(f2, dtype=np.int)
+
+        if neg_proc == 'abs':
+            g = np.array(np.abs(diff), dtype=np.uint8)
+        elif neg_proc == 'clip':
+            g = np.array(np.maximum(diff, 0), dtype=np.uint8)
+        else:
+            g = None
+
+        return g
 
     def add_salt_and_pepper(self, f, ratio_salt=0.05, ratio_pepper=0.05):
         # add salt-and-pepper noise
-
         fn = f.copy()
         height, width = fn.shape
 
         # calculate no. of pixels to be noised
         n_salt = np.int(width * height * ratio_salt)
         n_pepper = np.int(width * height * ratio_pepper)
-        # generate noised image data
+        # add salt noises
         for _ in range(n_salt):
             y, x = rd.randint(height), rd.randint(width)
             fn[y, x] = IMAX
+        # add pepper noises
         for _ in range(n_pepper):
             y, x = rd.randint(height), rd.randint(width)
             fn[y, x] = IMIN
@@ -96,12 +110,12 @@ class ImgProcLib:
 
         for y in range(height):
             for x in range(width):
-                # get 1D pixel data from window and check if boundary
+                # get 1D pixel data from filter window and check if boundary
                 f_win, is_boundary = self.get_pixel_rel_win(f, y, x, ofs, flatten=True)
                 # filter boundary if inc_bound = True
                 if (not is_boundary) or (is_boundary and inc_bound):
                     # calculate index to median pixel
-                    i_med = len(f_win) // 2 # index to median = (no. of pixel in win) / 2 - 0.5
+                    i_med = len(f_win) // 2
                     # sort, extract and assign median pixel data
                     g[y, x] = sorted(f_win)[i_med]
         
@@ -110,25 +124,22 @@ class ImgProcLib:
 
         return g
 
-    def adaptive_median_filter(self, f, max_size=7):
+    def adaptive_median_filter(self, f, win_max):
         #
         # adaptive median filter
         #
         # f: input image data
-        # max_size: maximum filter size
+        # win_max: maximum filter window size
         # g: filtered image data
         #
         g = f.copy()
         height, width = f.shape
-        S_max = max_size
+        S_max = win_max
 
         for y in range(height):
             for x in range(width):
-                # initial window size
-                S = 3
                 z_xy = f[y, x]
-                while(True):
-                    # get pixel data and sort
+                for S in range(3, S_max + 1, 2): # S = 3, 5, ..., S_max
                     ofs = S // 2
                     f_win, _ = self.get_pixel_rel_win(f, y, x, ofs, flatten=True)
                     zs = np.array(sorted(f_win), dtype=np.int)
@@ -136,28 +147,18 @@ class ImgProcLib:
                     z_max = zs[-1]
                     z_med = zs[len(zs) // 2]
                     # Stage A
-                    A1 = z_med - z_min
-                    A2 = z_med - z_max
-                    if A1 > 0 and A2 < 0:
+                    if z_min < z_med < z_max: # successfully filtered
                         # Stage B
-                        B1 = z_xy - z_min
-                        B2 = z_xy - z_max
-                        if B1 > 0 and B2 < 0:
-                            z = z_xy
-                            break
-                        else:
-                            z = z_med
-                            break
-                    else:
-                        S += 2
-                        if S <= S_max:
-                            pass
-                        else:
+                        z = z_xy if z_min < z_xy < z_max else z_med # check if not a noise
+                        break
+                    else: # too many noises to filter with small window
+                        S += 2 # increase window size
+                        if S > S_max: # already maximum window size
                             z = z_med
                             break
                 g[y, x] = z
         
         if self.show: self.imshow(g, title='Filtered image')
-        if self.verbose: print(f'Image is denoised with an adaptive median filter (max. size = {max_size})')
+        if self.verbose: print(f'Image is denoised with an adaptive median filter (max. size = {S_max})')
 
         return g
