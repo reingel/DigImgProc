@@ -104,13 +104,13 @@ class ImgProcLib:
         # inc_bound: filter boundary if True
         # g: filtered image data
         #
-        g = f.copy()
+        g = np.zeros_like(f)
         height, width = f.shape
         ofs = win_size // 2 # offset = (window size) / 2 - 0.5
 
         for y in range(height):
             for x in range(width):
-                # get 1D pixel data from filter window and check if boundary
+                # get 1D pixel data from filter window and boundary-ness
                 f_win, is_boundary = self.get_pixel_rel_win(f, y, x, ofs, flatten=True)
                 # filter boundary if inc_bound = True
                 if (not is_boundary) or (is_boundary and inc_bound):
@@ -132,7 +132,7 @@ class ImgProcLib:
         # win_max: maximum filter window size
         # g: filtered image data
         #
-        g = f.copy()
+        g = np.zeros_like(f)
         height, width = f.shape
         S_max = win_max
 
@@ -148,14 +148,11 @@ class ImgProcLib:
                     z_med = zs[len(zs) // 2]
                     # Stage A
                     if z_min < z_med < z_max: # successfully filtered
-                        # Stage B
-                        z = z_xy if z_min < z_xy < z_max else z_med # check if not a noise
+                        # Stage B (check if not a noise)
+                        z = z_xy if z_min < z_xy < z_max else z_med
                         break
                     else: # too many noises to filter with small window
-                        S += 2 # increase window size
-                        if S > S_max: # already maximum window size
-                            z = z_med
-                            break
+                        z = z_med
                 g[y, x] = z
         
         if self.show: self.imshow(g, title='Filtered image')
