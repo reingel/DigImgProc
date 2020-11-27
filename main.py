@@ -4,22 +4,33 @@ import matplotlib.pyplot as plt
 from ImgProc import ImgProcLib
 
 # parameters
-filepath = 'Fig5.07(a).jpg'
-ratio_salt = 0.25
-ratio_pepper = 0.25
+filepath = 'camera.bmp'
 
 # create a ImgProcLib object
 ipl = ImgProcLib(show=False, verbose=True)
 
-# median filter test
+# load image file
 f = ipl.load(filepath)
-h = ipl.difference(f, f)
-d = np.sqrt(np.mean(h**2))
 
-fn = ipl.add_salt_and_pepper(f, ratio_salt=ratio_salt, ratio_pepper=ratio_pepper)
-h = ipl.difference(f, fn)
-dn = np.sqrt(np.mean(h**2))
+# calculate probability distribution
+p = ipl.prob_dist(f)
+g, p, sB2, k_star = ipl.threshold_otsu(f)
 
+plt.subplot(221)
+plt.imshow(f, cmap='gray')
+
+plt.subplot(222)
+plt.imshow(g, cmap='gray')
+
+plt.subplot(223)
+plt.plot(p)
+plt.plot(sB2/np.max(sB2))
+plt.plot([k_star, k_star], [0, 1])
+
+plt.show()
+
+
+'''
 p = [f, fn, None] # image array
 t = [f'original image (diff={d:.2f})', f'corrupted by salt-and-pepper (diff={dn:.2f})', None] # title array
 for s in range(3,7+1,2):
@@ -43,3 +54,4 @@ for i in range(len(p)):
         axis[i].set_title(t[i], fontsize=7)
     axis[i].set_axis_off()
 plt.show()
+'''
