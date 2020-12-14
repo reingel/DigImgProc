@@ -12,28 +12,16 @@ IMAX = np.uint8(L - 1) # white
 # image filenames
 filenames = [
     'Fig2.07(a).jpg',
-    'A_1.png',
-    'A_2.png',
-    'mesh.png',
-    'honeywell.png',
-    'stain_1.png',
-    'stain_2.png',
-    'script1.jpeg',
+    # 'script1.jpeg',
     'script2.jpeg',
     'Fig2.08(a).jpg',
     'Fig2.08(b).jpg',
     'Fig2.08(c).jpg',
     'Fig2.19(a).jpg',
-    'Fig2.21(a).jpg',
     'Fig2.22(a).jpg',
     'Fig2.22(b).jpg',
     'Fig2.22(c).jpg',
-    # 'Fig2.24.jpg',
     'Fig5.07(a).jpg',
-    # 'Fig10.1(a).png',
-    # 'Fig10.16(a).png',
-    'Fig10.21(b).png',
-    # 'Fig10.26(a).png',
     'Fig10.36(a).png',
     'Fig10.36(b).png',
     'Fig10.36(c).png',
@@ -41,12 +29,14 @@ filenames = [
     # 'Fig10.37(b).png',
     'Fig10.37(c).png',
     'Fig10.38(a).png',
-    # 'Fig10.39(a).png',
     'Fig10.43(a).png',
     'Fig10.45(a).png',
     'Fig10.49(a).png',
     'Fig10.50(a).png',
 ]
+
+# delta x for pdf
+d = 1
 
 # create a ImgProcLib object
 ipl = ImgProcLib(show=False, verbose=False)
@@ -75,7 +65,7 @@ for filename in filenames:
     ax2.set_axis_off()
 
     # show the histogram and class means
-    ax5.vlines(range(0, L, 4), 0, p[::4], 'k', linewidth=0.5)
+    ax5.vlines(range(0, L, d), 0, p[::d], 'k', linewidth=0.5)
     # ax5.plot(w_k, 'r')
     ax5.vlines(k_opt, 0, np.max(p), 'r')
     ax5.vlines(mu_T, 0, np.max(p) * 2/3, 'c')
@@ -103,6 +93,21 @@ for filename in filenames:
     ax4.text(0, 0.1, f'$\mu^*$ = ({mu_opt[0]:.1f}, {mu_opt[1]:.1f})', fontsize=8)
     ax4.set_axis_off()
 
+    # plot for capture
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
+    # ax.vlines(range(0, L, d), 0, p[::d], 'k', linewidth=0.5)
+    # ax.vlines(range(0, L, d), 0, p[::d]/np.max(p[::d]), 'k', linewidth=0.5)
+    # ax.vlines(range(0, L, d), 0, p[::d]/np.max(p[::d])*np.max(mu_k), 'k', linewidth=0.5)
+    # ax.plot(range(L), w_k, 'b', linewidth=1)
+    # ax.plot(range(L), mu_k, 'r', linewidth=1)
+    # ax.vlines(k_opt, 0, np.max(p), 'r')
+    # ax.vlines(mu_T, 0, np.max(p) * 2/3, 'c')
+    # ax.vlines(mu_opt, 0, np.max(p) * 1/2, 'b')
+    # ax.tick_params(axis='both', labelsize=7)
+    # ax.set_xlabel('gray-level intensity', fontsize=7)
+    # ax.set_ylabel('probability', fontsize=7)
+
     # Otsu's thresholding with three classes
     g, p, w_k, mu_k, mu_T, var_B, var_T, k_opt, var_B_opt, eta_opt, w_opt, mu_opt = ipl.threshold_otsu3(f)
     sigma_B = np.sqrt(var_B)
@@ -115,8 +120,7 @@ for filename in filenames:
     ax3.set_axis_off()
 
     # show the histogram and class means
-    ax6.vlines(range(0, L, 4), 0, p[::4], 'k', linewidth=0.5)
-    # ax6.plot(mu_k, 'r')
+    ax6.vlines(range(0, L, d), 0, p[::d], 'k', linewidth=0.5)
     ax6.vlines(k_opt, 0, np.max(p), 'r')
     ax6.vlines(mu_T, 0, np.max(p) * 2/3, 'c')
     ax6.vlines(mu_opt, 0, np.max(p) * 1/2, 'b')
@@ -142,7 +146,7 @@ for filename in filenames:
     ax7.text(0, 0.4, f'$\mu^*$ = ({mu_opt[0]:.1f}, {mu_opt[1]:.1f}, {mu_opt[2]:.1f})', fontsize=8)
     ax7.set_axis_off()
 
-    # thresholding using moving averages
+    # thresholding using moving averages (not finished)
     # if filename == 'Fig10.49(a).png' or filename == 'Fig10.50(a).png':
     #     g, t = ipl.threshold_moving_average(f, n=20, b=0.8)
     #     fig = plt.figure(figsize=(10/3,8/3*2))
